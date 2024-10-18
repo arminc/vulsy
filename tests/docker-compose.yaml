@@ -1,0 +1,17 @@
+version: '3.8'
+
+
+services:
+  couchbase:
+    image: couchbase:community-7.6.2
+    ports:
+      - "8091-8094:8091-8094"
+      - "11210:11210"
+    environment:
+      - COUCHBASE_ADMINISTRATOR_USERNAME=admin
+      - COUCHBASE_ADMINISTRATOR_PASSWORD=password
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8091/pools/default"]
+      interval: 30s
+      timeout: 10s
+      retries: 5

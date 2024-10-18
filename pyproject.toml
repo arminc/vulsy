@@ -1,0 +1,108 @@
+[project]
+name = "vulsy"
+version = "0.0.1"
+requires-python = ">=3.12"
+
+dependencies = [
+    "cryptography==43.0.1",
+    "requests==2.32.3",
+    "pydantic==2.9.2",
+    "typer==0.12.5",
+    "couchbase==4.3.3",
+    "pydantic-settings==2.6.0",
+    "opentelemetry-instrumentation==0.48b0",
+    "opentelemetry-distro==0.48b0",
+    "opentelemetry-api==1.27.0",
+    "opentelemetry-sdk==1.27.0",
+    "opentelemetry-exporter-otlp==1.27.0",
+]
+
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["vulsy"]
+
+[tool.pytest.ini_options]
+# https://docs.pytest.org/en/7.1.x/explanation/goodpractices.html#choosing-an-import-mode
+addopts = "--import-mode=importlib --cov=vulsy --cov-branch --cov-report=html tests"
+markers = ["database: Marks tests that require database initialization"]
+
+
+[tool.coverage.run]
+omit = [
+    "*/tests/*",
+    "*/__init__.py",
+    "*/main.py",
+    "*/vulsy/settings.py",
+    "*/vulsy/common/couchbase_storage/exceptions.py",
+    "*/vulsy/common/couchbase_storage/server.py",
+    "*/vulsy/common/couchbase_storage/setup/*",
+    "*/vulsy/common/couchbase_storage/repo/generic.py", # Should create a integration test for this
+]
+
+[project.optional-dependencies]
+dev = [
+    "ruff==0.7.0",
+    "mypy==1.12.0",
+    "types-requests==2.32.0.20241016",
+    "requests-mock==1.12.1",
+    "mkdocs==1.6.1",
+    "mkdocstrings-python==1.12.2",
+    "mkdocs-material==9.5.42",
+    "mkdocs-literate-nav==0.6.1",
+    "mkdocs-gen-files==0.5.0",
+    "mkdocs-section-index==0.3.9",
+    "mkdocs-coverage==1.1.0",
+    "mkdocs-macros-adr-summary==1.0.0",
+]
+test = ["pytest==8.3.3", "pytest-cov==5.0.0", "freezegun==1.5.1"]
+all = ['vulsy[dev, test]']
+
+[tool.ruff]
+line-length = 120
+indent-width = 4
+
+target-version = "py312"
+
+[tool.ruff.lint]
+exclude = ["tests/*"]
+fixable = ["ALL"]
+select = ["ALL"]
+ignore = [
+    "W191",    # From here until
+    "E111",
+    "E114",
+    "E117",
+    "D206",
+    "D300",
+    "Q000",
+    "Q001",
+    "Q002",
+    "Q003",
+    "COM812",
+    "COM819",
+    "ISC001",
+    "ISC002",  # until here are from: https://docs.astral.sh/ruff/formatter/#conflicting-lint-rules
+    "DTZ005",  # Using our own IsoUtcDateTime
+    "TRY003",  # Fine with specifying text in exception
+    "EM101",   # Fine with specifying text in exception
+    "N805",    # Not compatible with Pydantic field validations as it is a class function
+    "TRY300",
+    "PLW0603", # Want to be able to use global
+]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint.pylint]
+max-args = 10
+
+[[tool.mypy.overrides]]
+module = "couchbase.*"
+ignore_missing_imports = true

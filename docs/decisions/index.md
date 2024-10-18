@@ -1,0 +1,1 @@
+{{ adr_summary(adr_path="docs/decisions", adr_style="nygard", template_file="docs/templates/adr.jinja") }}    

@@ -1,0 +1,48 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+  
+exporters:
+  otlphttp:
+    endpoint: http://loki:3100/otlp
+  # Exporter for sending trace data to Tempo.
+  otlp/grafana:
+    # Send to the locally running Tempo service.
+    endpoint: tempo:4317
+    # TLS is not enabled for the instance.
+    tls:
+      insecure: true
+
+  # Exporter for sending Prometheus data to Mimir.
+  prometheusremotewrite:
+    # Send to the locally running Mimir service.
+    endpoint: http://mimir:9009/api/v1/push
+    # TLS is not enabled for the instance.
+    tls:
+      insecure: true
+
+processors:
+  batch:
+
+service:
+  pipelines:
+    logs:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [otlphttp]
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [otlp/grafana]
+    metrics:
+      # Receive metrics from the `prometheus` receiver.
+      receivers: [otlp]
+      # Comment out other `receivers` definitions and uncomment the line below to import spanmetrics as well
+      # as prometheus metrics.
+      #receivers: [prometheus, spanmetrics]
+      # Use the `batch` processor to process received metrics.
+      processors: [batch]
+      # Export to the `prometheusremtotewrite` exporter.
+      exporters: [prometheusremotewrite]

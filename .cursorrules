@@ -1,0 +1,9 @@
+# Programming rules
+
+* Python 3.12
+* ruff and mypy
+* pytest
+* use union operator | instead of Optional or Union
+* use list[type] instead of List[type], same for other types as well
+* use Google style docstrings
+* use mermaid for diagrams in markdown

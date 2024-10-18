@@ -1,0 +1,85 @@
+version: '3.8'
+
+networks:
+  otel:
+
+volumes:
+  couchbase:
+
+services:
+  couchbase:
+    image: couchbase:community-7.6.2
+    ports:
+      - "8091-8094:8091-8094"
+      - "11210:11210"
+    environment:
+      - COUCHBASE_ADMINISTRATOR_USERNAME=admin
+      - COUCHBASE_ADMINISTRATOR_PASSWORD=password
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8091/pools/default"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    volumes:
+      - couchbase:/opt/couchbase/var
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:latest
+    ports:
+      - "4317:4317"
+    volumes:
+      - ./dev/docker/otel-collector-config.yaml:/etc/otelcol-contrib/config.yaml
+    networks:
+      - otel
+
+  mimir:
+    image: grafana/mimir:latest
+    command: ["-ingester.native-histograms-ingestion-enabled=true", "-config.file=/etc/mimir.yaml"]
+    ports:
+      - "9009:9009"
+    volumes:
+      - "./dev/docker/mimir-local-config.yaml:/etc/mimir.yaml"
+    networks:
+      - otel
+
+  loki:
+    image: grafana/loki:latest
+    ports:
+      - "3100:3100"
+    volumes:
+      - ./dev/docker/loki-local-config.yaml:/etc/loki/local-config.yaml
+    networks:
+      - otel
+
+  tempo:
+    image: grafana/tempo:latest
+    command: [ "-config.file=/etc/tempo.yaml" ]
+    volumes:
+      - ./dev/docker/tempo-local-config.yaml:/etc/tempo.yaml
+    ports:
+      - "14268"  # jaeger ingest
+      - "3200"   # tempo
+      - "4317"  # otlp grpc
+      - "4318"  # otlp http
+      - "9411"   # zipkin
+    networks:
+      - otel
+
+  grafana:
+    environment:
+      - GF_PATHS_PROVISIONING=/etc/grafana/provisioning
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_FEATURE_TOGGLES_ENABLE=traceqlEditor
+    volumes:
+      - ./dev/docker/grafana-datasources-local.yaml:/etc/grafana/provisioning/datasources/ds.yaml
+    entrypoint:
+      - sh
+      - -euc
+      - |
+        /run.sh
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    networks:
+      - otel

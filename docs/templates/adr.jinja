@@ -1,0 +1,4 @@
+| ID | Date | Decisions | Status |
+|----|------|-----------|--------|
+{% for d in documents|sort(attribute='document_id') %}| {{ d.document_id }} | {{ d.date.strftime('%d-%m-%Y') if d.date else "-" }} | [{{ d.title }}]({{ d.file_path }}) | {% for status in d.statuses %} {% set formatted_status = status|replace("<", "(")|replace(">", ")") %}{{ "[" ~ status|replace("<", "")|replace(">", "") ~ "](" ~ formatted_status.split('(')[1].split(')')[0] ~ ")" if ("<" in status and ">" in status) else status }}<br>{% endfor %}|
+{% endfor %}

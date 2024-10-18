@@ -1,0 +1,51 @@
+site_name: Vulsy documentation
+
+theme:
+  name: material
+
+docs_dir: docs/
+
+theme:
+  name: material
+  features:
+    - navigation.top
+    - content.code.copy
+
+plugins:
+  - search
+  - section-index
+  - gen-files:
+      scripts:
+        - dev/scripts/gen_ref_nav.py
+  - literate-nav:
+      nav_file: SUMMARY.md
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            docstring_section_style: list
+            filters: ["!^_"]
+            heading_level: 1
+            inherited_members: true
+            merge_init_into_class: true
+            parameter_headings: true
+            separate_signature: true
+            show_root_heading: true
+            show_root_full_path: true
+            show_signature_annotations: true
+            show_source: true
+            show_symbol_type_heading: true
+            show_symbol_type_toc: true
+            signature_crossrefs: true
+            summary: true
+  - macros:
+      modules:
+        - mkdocs_macros_adr_summary
+  - coverage
+
+markdown_extensions:
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
